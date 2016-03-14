@@ -1,30 +1,34 @@
 "use strict"
 const geojsonVt = require('geojson-vt');
 const vtPbf = require('vt-pbf');
-const url = require('url');
-const fs = require('fs');
+const request = require('requestretry');
+const zlib = require('zlib');
+
+const getTileIndex = (url, callback) => {
+  request({
+    url: url,
+    maxAttempts: 20,
+    retryDelay: 30000,
+    retryStrategy: (err, response) => (request.RetryStrategies.HTTPOrNetworkError(err, response) || (response && 202 === response.statusCode))
+  }, function (err, res, body){
+    if (err){
+      callback(err);
+      return;
+    }
+    callback(null, geojsonVt(JSON.parse(body), {maxZoom: 20})); //TODO: this should be configurable)
+  })
+}
 
 class GeoJSONSource {
   constructor(uri, callback){
-    if (!uri.pathname) {
-      callback(new Error('Invalid directory ' + url.format(uri)));
-      return;
-    }
-
-    if (uri.hostname === '.' || uri.hostname == '..') {
-      uri.pathname = uri.hostname + uri.pathname;
-      delete uri.hostname;
-      delete uri.host;
-    }
-
-    fs.readFile(uri.pathname, function (err, data){
+    getTileIndex("http://data.hslhrt.opendata.arcgis.com/datasets/8baa56336dc74a279c0f0a32998577d4_0.geojson", (err, tileIndex) => {
       if (err){
         callback(err);
         return;
       }
-      this.tileIndex = geojsonVt(JSON.parse(data), {maxZoom: 20}); //TODO: this should be configurable
-      callback(null, this)
-    }.bind(this));
+      this.tileIndex = tileIndex;
+      callback(null, this);
+    })
   };
 
   getTile(z, x, y, callback){
@@ -34,12 +38,24 @@ class GeoJSONSource {
       tile = {features: []}
     }
 
-    callback(null, vtPbf.fromGeojsonVt({ 'geojsonLayer': tile}), {"content-encoding": "none"})
+    zlib.gzip(vtPbf.fromGeojsonVt({'ticket-sales': tile}), function (err, buffer) {
+      if (err){
+        callback(err);
+        return;
+      }
+
+      callback(null, buffer, {"content-encoding": "gzip"})
+    })
   }
 
   getInfo(callback){
     callback(null, {
-      format: "pbf"
+      format: "pbf",
+      maxzoom: 20,
+      vector_layers: [{
+        description: "",
+        id: "ticket-sales"
+      }]
     })
   }
 }
@@ -47,5 +63,5 @@ class GeoJSONSource {
 module.exports = GeoJSONSource
 
 module.exports.registerProtocols = (tilelive) => {
-  tilelive.protocols['geojson:'] = GeoJSONSource
+  tilelive.protocols['hslticketsales:'] = GeoJSONSource
 }
