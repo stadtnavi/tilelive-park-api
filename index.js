@@ -37,8 +37,10 @@ class GeoJSONSource {
     if (tile === null){
       tile = {features: []}
     }
+    
+    const data = Buffer.from(vtPbf.fromGeojsonVt({'ticket-sales': tile}));
 
-    zlib.gzip(vtPbf.fromGeojsonVt({'ticket-sales': tile}), function (err, buffer) {
+    zlib.gzip(data, function (err, buffer) {
       if (err){
         callback(err);
         return;
