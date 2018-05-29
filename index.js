@@ -21,7 +21,7 @@ const getTileIndex = (url, callback) => {
 
 class GeoJSONSource {
   constructor(uri, callback){
-    getTileIndex("http://data.hslhrt.opendata.arcgis.com/datasets/42045a8235114dc8bf417df0a1a89edd_0.geojson", (err, tileIndex) => {
+    getTileIndex("http://data-hslhrt.opendata.arcgis.com/datasets/21918372164d410683f03925e4441598_0.geojson", (err, tileIndex) => {
       if (err){
         callback(err);
         return;
