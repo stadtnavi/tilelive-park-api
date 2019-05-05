@@ -21,7 +21,7 @@ const getTileIndex = (url, callback) => {
 
 class GeoJSONSource {
   constructor(uri, callback){
-    getTileIndex("http://data-hslhrt.opendata.arcgis.com/datasets/21918372164d410683f03925e4441598_0.geojson", (err, tileIndex) => {
+    getTileIndex("https://s3.mobil-in-herrenberg.de/hb-parking/hb-parking.geojson", (err, tileIndex) => {
       if (err){
         callback(err);
         return;
@@ -38,7 +38,7 @@ class GeoJSONSource {
       tile = {features: []}
     }
     
-    const data = Buffer.from(vtPbf.fromGeojsonVt({'ticket-sales': tile}));
+    const data = Buffer.from(vtPbf.fromGeojsonVt({'parking': tile}));
 
     zlib.gzip(data, function (err, buffer) {
       if (err){
@@ -56,7 +56,7 @@ class GeoJSONSource {
       maxzoom: 20,
       vector_layers: [{
         description: "",
-        id: "ticket-sales"
+        id: "parking"
       }]
     })
   }
@@ -65,5 +65,5 @@ class GeoJSONSource {
 module.exports = GeoJSONSource
 
 module.exports.registerProtocols = (tilelive) => {
-  tilelive.protocols['hslticketsales:'] = GeoJSONSource
+  tilelive.protocols['hbparking:'] = GeoJSONSource
 }

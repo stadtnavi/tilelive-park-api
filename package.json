@@ -1,12 +1,12 @@
 {
-  "name": "tilelive-hsl-ticket-sales",
+  "name": "tilelive-hb-parking",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "hannesj",
+  "author": "robbi5",
   "license": "ISC",
   "dependencies": {
     "geojson-vt": "^2.1.8",
