@@ -28,7 +28,7 @@ const getTileIndex = (url, callback) => {
 };
 
 // i haven't been able to find a way to directly generate the vector tiles, so
-// we take detour via geojson.
+// we take a detour via geojson.
 // if you know of a way to do it directly, let me know.
 const parkApiToGeoJson = data => {
   const json = JSON.parse(data);
