@@ -5,7 +5,7 @@ const request = require("requestretry");
 const zlib = require("zlib");
 
 const url = process.env.PARK_API_URL || "https://api.parkendd.de/Ulm";
-const maxZoom = process.env.MAX_ZOOM || 20;
+const maxZoom = parseInt(process.env.MAX_ZOOM) || 20;
 
 const getTileIndex = (url, callback) => {
   request(
@@ -27,6 +27,9 @@ const getTileIndex = (url, callback) => {
   );
 };
 
+// i haven't been able to find a way to directly generate the vector tiles, so
+// we take detour via geojson.
+// if you know of a way to do it directly, let me know.
 const parkApiToGeoJson = data => {
   const json = JSON.parse(data);
 
@@ -35,18 +38,16 @@ const parkApiToGeoJson = data => {
       type: "Feature",
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [lot.coords.lng, lot.coords.lat]
       },
-      properties: {
-        name: "null island"
-      }
+      // lat/long is a little superfluous, given that it's in the geometry above, but not removing it keeps the code simpler
+      properties: lot
     };
   });
 
-  console.log(features);
   return {
     type: "FeatureCollection",
-    features: []
+    features: features
   };
 };
 
@@ -84,7 +85,7 @@ class ParkApiSource {
   getInfo(callback) {
     callback(null, {
       format: "pbf",
-      maxzoom: 20,
+      maxzoom: maxZoom,
       vector_layers: [
         {
           description: "Parking lots data retrieved from ParkApi",
