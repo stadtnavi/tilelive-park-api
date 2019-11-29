@@ -1,12 +1,12 @@
 {
-  "name": "tilelive-hb-parking",
+  "name": "tilelive-park-api",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
   },
-  "author": "robbi5",
+  "author": "lehrenfried",
   "license": "ISC",
   "dependencies": {
     "geojson-vt": "^2.1.8",
