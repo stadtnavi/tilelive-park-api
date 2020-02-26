@@ -62,7 +62,7 @@ class ParkApiSource {
         callback(err);
         return;
       }
-      let tile = this.tileIndex.getTile(z, x, y);
+      let tile = tileIndex.getTile(z, x, y);
       if (tile === null) {
         tile = { features: [] };
       }
