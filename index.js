@@ -78,7 +78,7 @@ class ParkApiSource {
         return;
       }
 
-      callback(null, buffer, { "content-encoding": "gzip" });
+      callback(null, buffer, { "content-encoding": "gzip", "cache-control": "public,max-age=120" });
     });
   }
 
