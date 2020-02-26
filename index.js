@@ -53,32 +53,30 @@ const parkApiToGeoJson = data => {
 
 class ParkApiSource {
   constructor(uri, callback) {
+    callback(null, this);
+  }
+
+  getTile(z, x, y, callback) {
     getTileIndex(url, (err, tileIndex) => {
       if (err) {
         callback(err);
         return;
       }
-      this.tileIndex = tileIndex;
-      callback(null, this);
-    });
-  }
+      let tile = this.tileIndex.getTile(z, x, y);
+      if (tile === null) {
+        tile = { features: [] };
+      }
 
-  getTile(z, x, y, callback) {
-    let tile = this.tileIndex.getTile(z, x, y);
+      const data = Buffer.from(vtPbf.fromGeojsonVt({ parking: tile }));
 
-    if (tile === null) {
-      tile = { features: [] };
-    }
-
-    const data = Buffer.from(vtPbf.fromGeojsonVt({ parking: tile }));
-
-    zlib.gzip(data, function(err, buffer) {
+      zlib.gzip(data, function(err, buffer) {
       if (err) {
         callback(err);
         return;
       }
 
       callback(null, buffer, { "content-encoding": "gzip", "cache-control": "public,max-age=120" });
+    });
     });
   }
 
