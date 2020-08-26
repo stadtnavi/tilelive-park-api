@@ -5,7 +5,7 @@ const request = require("requestretry");
 const zlib = require("zlib");
 const NodeCache = require( "node-cache" );
 
-const overrideUrl = process.env.PARK_API_URL || "https://api.parkendd.de/Ulm";
+const url = process.env.PARK_API_URL || "https://api.parkendd.de/Ulm";
 const maxZoom = parseInt(process.env.MAX_ZOOM) || 20;
 
 const getGeoJson = (url, callback) => {
@@ -24,7 +24,6 @@ const getGeoJson = (url, callback) => {
         callback(err);
         return;
       }
-      console.log(`Successfully downloaded ParkAPI data from ${url}: ${body}`);
       callback(null, parkApiToGeoJson(body));
     }
   );
@@ -58,13 +57,12 @@ class ParkApiSource {
   constructor(uri, callback) {
     this.cacheKey = "tileindex";
     this.cache = new NodeCache({ stdTTL: 60, useClones: false });
-    this.url = uri || overrideUrl;
+    this.url = url;
     callback(null, this);
   }
 
   fetchGeoJson(callback){
     getGeoJson(this.url, (err, geojson) => {
-      console.log(geojson)
       if (err) {
         callback(err);
         return;
@@ -110,7 +108,7 @@ class ParkApiSource {
       maxzoom: maxZoom,
       vector_layers: [
         {
-          description: "Parking lots data retrieved from ParkApi",
+          description: "Parking lots data retrieved from a ParkAPI source",
           id: "parking"
         }
       ]
