@@ -17,7 +17,7 @@ describe("ParkApiSource", function() {
       source.getTile(16, 34382, 22618, (err, response) => {
         assert.ok(response.length > 100);
         assert.ok(response);
-        assert.ok(source.cache.has(source.cacheKey));
+        assert.ok(source.cache.get(source.cacheKey));
       })
 
       done();

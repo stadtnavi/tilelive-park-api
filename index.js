@@ -71,7 +71,7 @@ class ParkApiSource {
   }
 
   getTile(z, x, y, callback) {
-    if(this.cache.has(this.cacheKey)) {
+    if(this.cache.get(this.cacheKey)) {
       const tileIndex = this.cache.get(this.cacheKey);
       this.computeTile(tileIndex, z, x, y, callback);
     } else {
