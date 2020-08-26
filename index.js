@@ -8,7 +8,7 @@ const NodeCache = require( "node-cache" );
 const overrideUrl = process.env.PARK_API_URL || "https://api.parkendd.de/Ulm";
 const maxZoom = parseInt(process.env.MAX_ZOOM) || 20;
 
-const getTileIndex = (url, callback) => {
+const getGeoJson = (url, callback) => {
   request(
     {
       url: url,
@@ -23,7 +23,7 @@ const getTileIndex = (url, callback) => {
         callback(err);
         return;
       }
-      callback(null, geojsonVt(parkApiToGeoJson(body), { maxZoom: maxZoom }));
+      callback(null, parkApiToGeoJson(body));
     }
   );
 };
@@ -60,29 +60,30 @@ class ParkApiSource {
     callback(null, this);
   }
 
-  fetchTileIndex(callback){
-    getTileIndex(this.url, (err, tileIndex) => {
+  fetchGeoJson(callback){
+    getGeoJson(this.url, (err, geojson) => {
       if (err) {
         callback(err);
         return;
       }
-      callback(tileIndex);
+      callback(geojson);
     });
   }
 
   getTile(z, x, y, callback) {
     if(this.cache.get(this.cacheKey)) {
-      const tileIndex = this.cache.get(this.cacheKey);
-      this.computeTile(tileIndex, z, x, y, callback);
+      const geojson = this.cache.get(this.cacheKey);
+      this.computeTile(geojson, z, x, y, callback);
     } else {
-      this.fetchTileIndex((tileIndex) => {
-        this.cache.set(this.cacheKey, tileIndex);
-        this.computeTile(tileIndex, z, x, y, callback);
+      this.fetchGeoJson((geojson) => {
+        this.cache.set(this.cacheKey, geojson);
+        this.computeTile(geojson, z, x, y, callback);
       });
     }
   }
 
-  computeTile(tileIndex, z, x, y, callback) {
+  computeTile(geoJson, z, x, y, callback) {
+    const tileIndex = geojsonVt(geoJson, { maxZoom: maxZoom });
     let tile = tileIndex.getTile(z, x, y);
     if (tile === null) {
       tile = { features: [] };
