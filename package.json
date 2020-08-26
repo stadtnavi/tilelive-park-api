@@ -15,7 +15,7 @@
     "vt-pbf": "^2.0.2"
   },
   "devDependencies": {
-    "mocha": "^7.0.0",
+    "mocha": "^6.2.2",
     "prettier": "1.19.1"
   }
 }
