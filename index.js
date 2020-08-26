@@ -20,9 +20,11 @@ const getGeoJson = (url, callback) => {
     },
     function(err, res, body) {
       if (err) {
+        console.log(`Error when downloading ParkAPI data from ${url}: ${err} ${res} ${body}`);
         callback(err);
         return;
       }
+      console.log(`Successfully downloaded ParkAPI data from ${url}: ${body}`);
       callback(null, parkApiToGeoJson(body));
     }
   );
@@ -62,6 +64,7 @@ class ParkApiSource {
 
   fetchGeoJson(callback){
     getGeoJson(this.url, (err, geojson) => {
+      console.log(geojson)
       if (err) {
         callback(err);
         return;
