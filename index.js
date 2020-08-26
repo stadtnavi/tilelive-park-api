@@ -3,8 +3,9 @@ const geojsonVt = require("geojson-vt");
 const vtPbf = require("vt-pbf");
 const request = require("requestretry");
 const zlib = require("zlib");
+const NodeCache = require( "node-cache" );
 
-const url = process.env.PARK_API_URL || "https://api.parkendd.de/Ulm";
+const overrideUrl = process.env.PARK_API_URL || "https://api.parkendd.de/Ulm";
 const maxZoom = parseInt(process.env.MAX_ZOOM) || 20;
 
 const getTileIndex = (url, callback) => {
@@ -53,30 +54,49 @@ const parkApiToGeoJson = data => {
 
 class ParkApiSource {
   constructor(uri, callback) {
+    this.cacheKey = "tileindex";
+    this.cache = new NodeCache({ stdTTL: 60, useClones: false });
+    this.url = uri || overrideUrl;
     callback(null, this);
   }
 
-  getTile(z, x, y, callback) {
-    getTileIndex(url, (err, tileIndex) => {
+  fetchTileIndex(callback){
+    getTileIndex(this.url, (err, tileIndex) => {
       if (err) {
         callback(err);
         return;
       }
-      let tile = tileIndex.getTile(z, x, y);
-      if (tile === null) {
-        tile = { features: [] };
-      }
+      callback(tileIndex);
+    });
+  }
 
-      const data = Buffer.from(vtPbf.fromGeojsonVt({ parking: tile }));
+  getTile(z, x, y, callback) {
+    if(this.cache.has(this.cacheKey)) {
+      const tileIndex = this.cache.get(this.cacheKey);
+      this.computeTile(tileIndex, z, x, y, callback);
+    } else {
+      this.fetchTileIndex((tileIndex) => {
+        this.cache.set(this.cacheKey, tileIndex);
+        this.computeTile(tileIndex, z, x, y, callback);
+      });
+    }
+  }
 
-      zlib.gzip(data, function(err, buffer) {
+  computeTile(tileIndex, z, x, y, callback) {
+    let tile = tileIndex.getTile(z, x, y);
+    if (tile === null) {
+      tile = { features: [] };
+    }
+
+    const data = Buffer.from(vtPbf.fromGeojsonVt({ parking: tile }));
+
+    zlib.gzip(data, function(err, buffer) {
       if (err) {
         callback(err);
         return;
       }
 
       callback(null, buffer, { "content-encoding": "gzip", "cache-control": "public,max-age=120" });
-    });
     });
   }
 
