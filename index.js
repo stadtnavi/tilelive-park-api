@@ -6,7 +6,6 @@ const zlib = require("zlib");
 const NodeCache = require( "node-cache" );
 
 const url = process.env.PARK_API_URL || "https://api.parkendd.de/Ulm";
-const maxZoom = parseInt(process.env.MAX_ZOOM) || 20;
 
 const getGeoJson = (url, callback) => {
   request(
@@ -84,7 +83,7 @@ class ParkApiSource {
   }
 
   computeTile(geoJson, z, x, y, callback) {
-    const tileIndex = geojsonVt(geoJson, { maxZoom: maxZoom });
+    const tileIndex = geojsonVt(geoJson, { maxZoom: 20, buffer: 512 });
     let tile = tileIndex.getTile(z, x, y);
     if (tile === null) {
       tile = { features: [] };
@@ -105,7 +104,7 @@ class ParkApiSource {
   getInfo(callback) {
     callback(null, {
       format: "pbf",
-      maxzoom: maxZoom,
+      maxzoom: 20,
       vector_layers: [
         {
           description: "Parking lots data retrieved from a ParkAPI source",
